@@ -10,8 +10,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch', ['launch/camera_subscriber.launch.py']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'opencv-python'],
     zip_safe=True,
     maintainer='akshat',
     maintainer_email='akshat22050@iiitd.ac.in',
@@ -24,6 +25,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'camera_subscriber = ri_pkg.camera_subscriber:main',
         ],
     },
 )
