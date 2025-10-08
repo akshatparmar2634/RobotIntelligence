@@ -30,7 +30,7 @@ class CameraSubscriber(Node):
             # Convert ROS Image message to OpenCV format
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             
-            # Display the image
+            # Display the image 
             cv2.imshow("TurtleBot3 Camera Feed", cv_image)
             
             # Wait for keypress (1ms timeout)
