@@ -7,3 +7,8 @@ sudo apt install -y ros-jazzy-cv-bridge
 pip install --upgrade pip setuptools wheel
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 pip install ultralytics opencv-python
+
+
+openai-whisper
+sounddevice 
+pyttsx3
