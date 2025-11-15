@@ -8,8 +8,8 @@ import torch
 from ultralytics import YOLO
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from PIL import Image as PILImage
-import numpy as np
-import io
+import time
+import re
 
 class YoloSmolVLM2Node(Node):
     def __init__(self):
@@ -18,16 +18,19 @@ class YoloSmolVLM2Node(Node):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.get_logger().info(f"Using device: {self.device}")
 
+        # --- Frame rate control (2 FPS) ---
+        self.last_frame_time = 0.0
+        self.frame_interval = 0.5  # seconds → 2 FPS
+
         # --- YOLO ---
         self.get_logger().info("Loading YOLO model...")
-        self.yolo = YOLO("yolov8s.pt")
+        self.yolo = YOLO("yolov8s.pt")  
         self.yolo.to(self.device)
-        self.get_logger().info("YOLO loaded.")
+        self.get_logger().info("YOLO loaded successfully.")
 
         # --- SmolVLM2 ---
         self.get_logger().info("Loading SmolVLM2 model...")
         try:
-            # model_path = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
             model_path = "HuggingFaceTB/SmolVLM2-256M-Video-Instruct"
             self.processor = AutoProcessor.from_pretrained(model_path)
             self.vlm_model = AutoModelForImageTextToText.from_pretrained(
@@ -41,10 +44,17 @@ class YoloSmolVLM2Node(Node):
             self.get_logger().error(f"Failed to load SmolVLM2: {e}")
             self.vlm_enabled = False
 
+        # --- Subscription to camera topic ---
         self.sub = self.create_subscription(Image, "/camera/image_raw", self.image_callback, 10)
         self.get_logger().info("Node started. Waiting for camera frames...")
 
     def image_callback(self, msg: Image):
+        # --- Frame rate limiter ---
+        current_time = time.time()
+        if current_time - self.last_frame_time < self.frame_interval:
+            return  # Skip frame to maintain 2 FPS
+        self.last_frame_time = current_time
+
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         results = self.yolo(frame)
         annotated = frame.copy()
@@ -91,8 +101,29 @@ class YoloSmolVLM2Node(Node):
                         generated_ids = self.vlm_model.generate(**inputs, do_sample=False, max_new_tokens=50)
                         text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
+                    # --- Robust parsing of assistant response ---
+                    try:
+                        if "<assistant>" in text.lower():
+                            match = re.search(r"<\s*assistant\s*>\s*(.*)", text,
+                                              flags=re.IGNORECASE | re.DOTALL)
+                            text = match.group(1).strip() if match else text
+                        elif "assistant:" in text.lower():
+                            text = re.split(r"assistant:\s*", text,
+                                            flags=re.IGNORECASE)[-1].strip()
+                        elif "Assistant" in text:
+                            text = text.split("Assistant")[-1].strip()
+                        text = text.strip()
+                    except Exception as e:
+                        self.get_logger().warn(f"Assistant parsing failed: {e}")
+                        text = text.strip()
+
+                    # --- Optional: trim very long responses for overlay ---
+                    if len(text) > 80:
+                        text = text[:77] + "..."
+
                     cv2.putText(annotated, f"VLM: {text}", (x1, y2 + 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+
                 except torch.cuda.OutOfMemoryError:
                     self.get_logger().warn("GPU OOM during VLM inference — skipping this box.")
                     torch.cuda.empty_cache()
@@ -116,3 +147,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ 
