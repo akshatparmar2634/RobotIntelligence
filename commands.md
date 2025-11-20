@@ -30,7 +30,7 @@ Run the following commands in separate terminal windows to set up the TurtleBot3
 Launches the TurtleBot3 in the house world environment in Gazebo Harmonic.
 
 ```bash
-ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
+ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py use_sim_true:=True
 ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/map_house.yaml
 ```
 
@@ -39,8 +39,6 @@ ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:
 Subscribes to the TurtleBot3 camera feed and displays the images.
 
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/turtlebot3_ws/install/setup.bash
 ros2 run ri_pkg camera_subscriber
 ```
 
@@ -49,8 +47,6 @@ ros2 run ri_pkg camera_subscriber
 Enables keyboard control for the TurtleBot3 using the teleop node.
 
 ```bash
-source /opt/ros/jazzy/setup.bash
-source ~/turtlebot3_ws/install/setup.bash
 ros2 run turtlebot3_teleop teleop_keyboard
 ```
 
