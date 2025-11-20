@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "label": "dining table",
+    "confidence": 0.5104318261146545,
+    "world_coordinates": {
+      "x": 3.2225765852007644,
+      "y": 0.8700709728051474,
+      "distance": 3.3332269191741943,
+      "angle": 0.26408865265284975
+    },
+    "robot_pose_at_detection": {
+      "x": 0.004910008784023793,
+      "y": 1.7756356232203282e-14,
+      "z": 0.0,
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.3612424720930614,
+        "w": 0.9324719171943431
+      }
+    },
+    "timestamp": "2025-11-20T15:15:22.465900",
+    "vlm_description": "The object is a table."
+  },
+  {
+    "id": 2,
+    "label": "umbrella",
+    "confidence": 0.3708174228668213,
+    "world_coordinates": {
+      "x": -2.9163581575444,
+      "y": 3.4990304811108794,
+      "distance": 1.4933295249938965,
+      "angle": 3.399391587509425
+    },
+    "robot_pose_at_detection": {
+      "x": -1.4723779645727568,
+      "y": 3.879759088552023,
+      "z": 0.0,
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.9928509127559941,
+        "w": 0.11936107003369749
+      }
+    },
+    "timestamp": "2025-11-20T15:18:54.352238",
+    "vlm_description": "The object is a small, cylindrical object with a smooth surface. It appears to be made of a material that is resistant to wear and tear, possibly plastic or a similar material. The object has a small hole at the top, which could be for"
+  }
+]
