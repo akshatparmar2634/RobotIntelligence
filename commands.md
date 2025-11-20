@@ -25,12 +25,13 @@ source ~/turtlebot3_ws/install/setup.bash
 
 Run the following commands in separate terminal windows to set up the TurtleBot3 simulation.
 
-### Terminal 1: Launch Gazebo House World
+### Terminal 1: Launch Gazebo House World and RVIZ
 
 Launches the TurtleBot3 in the house world environment in Gazebo Harmonic.
 
 ```bash
 ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py
+ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/map_house.yaml
 ```
 
 ### Terminal 2: Run Camera Subscriber Node
@@ -50,61 +51,71 @@ Enables keyboard control for the TurtleBot3 using the teleop node.
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ~/turtlebot3_ws/install/setup.bash
-export TURTLEBOT3_MODEL=waffle_pi
 ros2 run turtlebot3_teleop teleop_keyboard
 ```
 
-### Terminal 4: Run Enhanced YOLO Camera Node
+### Terminal 4: Run Enhanced YOLO + VLM Camera Node
 
-Runs an enhanced YOLO-based object detection node that:
+Runs an enhanced YOLO + SmolVLM2 node that combines object detection with vision-language model descriptions and coordinate mapping:
 
-- Detects objects in the camera feed with CLIP classification
+- Detects objects using YOLO with detailed descriptions from SmolVLM2 vision-language model
 - Calculates real-world coordinates using robot pose and LiDAR data
-- Saves detected objects to JSON with duplicate prevention
+- Saves detected objects with VLM descriptions to JSON with duplicate prevention
 - Displays object coordinates and total count on the image
+- Runs at 2 FPS for optimal performance
 
 Ensure the Python script is executable and the virtual environment is activated.
 
 ```bash
 source ~/yolo_clip_env/bin/activate
-chmod +x ~/turtlebot3_ws/src/ri_pkg/ri_pkg/yolo_clip_camera_node.py
-python3 ~/turtlebot3_ws/src/ri_pkg/ri_pkg/yolo_clip_camera_node.py
+chmod +x ~/turtlebot3_ws/src/ri_pkg/ri_pkg/yolo_improved_vlm_node.py
+python3 ~/turtlebot3_ws/src/ri_pkg/ri_pkg/yolo_improved_vlm_node.py
 ```
 
-**Alternative**: You can now also run it as a ROS 2 node:
+**Alternative**: You can also run it as a ROS 2 node:
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source ~/turtlebot3_ws/install/setup.bash
 source ~/yolo_clip_env/bin/activate
-ros2 run ri_pkg yolo_clip_camera_node
+ros2 run ri_pkg yolo_improved_vlm_node
 ```
-
----
 
 ## Notes
 
 - **Environment Setup**: Ensure the ROS 2 workspace (`~/turtlebot3_ws`) and the virtual environment (`~/yolo_clip_env`) are properly configured with all dependencies installed.
-- **Enhanced YOLO Node**: The `yolo_clip_camera_node.py` script now includes:
+- **Enhanced VLM Node**: The `yolo_improved_vlm_node.py` script (primary recommendation) includes:
+  - SmolVLM2 vision-language model for detailed object descriptions
   - Robot pose subscription (`/odom`) for position tracking
   - LiDAR data processing (`/scan`) for distance measurement
   - Real-world coordinate calculation using camera angles and LiDAR ranges
-  - JSON object storage (`detected_objects.json`) with duplicate prevention (0.5m threshold)
-  - Object coordinates display on the camera feed
-- **YOLO Node Dependencies**: The YOLO node requires a virtual environment with YOLO dependencies (e.g., `ultralytics`, `opencv-python`, `torch`, `transformers`). Install these dependencies in `~/yolo_clip_env` before running the node.
-- **Object Detection Output**: Detected objects are saved to `detected_objects.json` in the `ri_pkg` package directory (`~/turtlebot3_ws/src/ri_pkg/detected_objects.json`) with the following information:
+  - JSON object storage (`detected_objects_vlm.json`) with duplicate prevention (0.5m threshold)
+  - Frame rate limiting (2 FPS) for optimal performance and stability
+  - GPU memory management for stable operation
+- **YOLO+CLIP Node**: The `yolo_clip_camera_node.py` script (alternative) includes:
+  - CLIP-based object classification (faster but less detailed than VLM)
+  - Same coordinate mapping and storage functionality
+  - JSON object storage (`detected_objects.json`)
+- **VLM Node Dependencies**: The enhanced VLM node requires a virtual environment with dependencies including `ultralytics`, `opencv-python`, `torch`, `transformers`, and `Pillow`. The SmolVLM2 model will be automatically downloaded on first run. Install these dependencies in `~/yolo_clip_env` before running the node.
+- **Object Detection Output**: Detected objects are saved to JSON files in the `ri_pkg` package directory:
+  - **Primary**: `detected_objects_vlm.json` (VLM node) - includes rich VLM descriptions
+  - **Alternative**: `detected_objects.json` (YOLO+CLIP node) - includes CLIP classifications
+  
+  Both files contain the following information:
   - Object ID, label, confidence score
   - World coordinates (x, y) and distance from robot
   - Robot pose at time of detection
-  - CLIP classification results (if enabled)
+  - CLIP classification results (YOLO+CLIP node) or VLM descriptions (VLM node)
   - Detection timestamp
 - **TurtleBot3 Model**: The `TURTLEBOT3_MODEL` environment variable is set to `waffle_pi`. If using a different model (e.g., `burger`), update the variable accordingly.
 - **File Permissions**: The `chmod +x` command for the YOLO node script only needs to be run once to make it executable.
 - **Troubleshooting**:
   - If Gazebo fails to launch, verify that Gazebo Harmonic is installed and compatible with ROS 2 Jazzy.
   - Ensure the `ri_pkg` package is built in your workspace (`colcon build` in `~/turtlebot3_ws`).
-  - Check that the camera topic (e.g., `/camera/image_raw`), odometry (`/odom`), and LiDAR (`/scan`) topics are being published correctly.
+  - Check that the camera topic (`/camera/image_raw`), odometry (`/odom`), and LiDAR (`/scan`) topics are being published correctly.
   - If objects are not being saved, check that the robot pose and LiDAR data are being received properly.
+  - For VLM node: If you encounter GPU memory issues, the node will automatically manage memory and skip problematic frames.
+  - For VLM node: The SmolVLM2 model downloads automatically on first run (~500MB), ensure good internet connection.
 
 ---
 

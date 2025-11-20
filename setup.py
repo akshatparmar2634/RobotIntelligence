@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'camera_subscriber = ri_pkg.camera_subscriber:main',
             'yolo_clip_camera_node = ri_pkg.yolo_clip_camera_node:main',
+            'yolo_improved_vlm_node = ri_pkg.yolo_improved_vlm_node:main',
         ],
     },
 )
