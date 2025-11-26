@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import LaserScan, CompressedImage
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
@@ -45,10 +46,17 @@ class YoloClipCameraNode(Node):
             CompressedImage, 
             '/camera/image_raw/compressed', 
             self.compressed_image_callback, 
-            1
+            5
         )
-        self.odom_subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 1)
-        self.lidar_subscription = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 1)
+        self.odom_subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 5)
+        
+        # Set QoS for LiDAR to BEST_EFFORT to match publisher
+        lidar_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+        self.lidar_subscription = self.create_subscription(LaserScan, '/scan', self.lidar_callback, lidar_qos)
         
         # Publishers
         self.detection_publisher = self.create_publisher(String, '/yolo/detection_result', 10)
