@@ -1,0 +1,249 @@
+[
+  {
+    "id": 1,
+    "label": "Circle.",
+    "yolo_label_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -6.2,
+      "y": 2.07,
+      "distance": 3.46,
+      "angle": 0.15
+    },
+    "timestamp": "2025-11-26T21:04:41.695337"
+  },
+  {
+    "id": 2,
+    "label": "Chair.",
+    "yolo_label_hint": "traffic light",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -9.33,
+      "y": 4.88,
+      "distance": 1.33,
+      "angle": 0.48
+    },
+    "timestamp": "2025-11-26T21:05:22.085480"
+  },
+  {
+    "id": 3,
+    "label": "Trash can.",
+    "yolo_label_hint": "vase",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -7.14,
+      "y": 5.88,
+      "distance": 1.49,
+      "angle": -0.11
+    },
+    "timestamp": "2025-11-26T21:05:23.705787"
+  },
+  {
+    "id": 4,
+    "label": "Ball.",
+    "yolo_label_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -3.82,
+      "y": 7.55,
+      "distance": 2.93,
+      "angle": 0.44
+    },
+    "timestamp": "2025-11-26T21:05:39.916214"
+  },
+  {
+    "id": 5,
+    "label": "Brick wall. 0.5",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -2.3,
+      "y": 6.37,
+      "distance": 2.61,
+      "angle": -0.0
+    },
+    "timestamp": "2025-11-26T21:05:44.197991"
+  },
+  {
+    "id": 6,
+    "label": "Brick wall.",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -2.68,
+      "y": 7.31,
+      "distance": 1.53,
+      "angle": -0.01
+    },
+    "timestamp": "2025-11-26T21:05:54.364970"
+  },
+  {
+    "id": 7,
+    "label": "Green cushion.",
+    "yolo_label_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -4.85,
+      "y": 7.11,
+      "distance": 1.4,
+      "angle": 0.49
+    },
+    "timestamp": "2025-11-26T21:05:56.061574"
+  },
+  {
+    "id": 8,
+    "label": "Baseball.",
+    "yolo_label_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -4.12,
+      "y": 3.62,
+      "distance": 2.62,
+      "angle": 0.23
+    },
+    "timestamp": "2025-11-26T21:06:08.967052"
+  },
+  {
+    "id": 9,
+    "label": "Brick wall.",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -1.19,
+      "y": 4.83,
+      "distance": 1.84,
+      "angle": 0.39
+    },
+    "timestamp": "2025-11-26T21:06:15.391718"
+  },
+  {
+    "id": 10,
+    "label": "Green cube.",
+    "yolo_hint": "cup",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -1.65,
+      "y": 3.62,
+      "distance": 1.65,
+      "angle": 0.46
+    },
+    "timestamp": "2025-11-26T21:12:51.725137"
+  },
+  {
+    "id": 11,
+    "label": "4.",
+    "yolo_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -5.02,
+      "y": 0.62,
+      "distance": 3.49,
+      "angle": 0.22
+    },
+    "timestamp": "2025-11-26T21:13:08.453278"
+  },
+  {
+    "id": 12,
+    "label": "Rack.",
+    "yolo_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -2.26,
+      "y": 4.44,
+      "distance": 3.41,
+      "angle": 0.42
+    },
+    "timestamp": "2025-11-26T21:13:32.302688"
+  },
+  {
+    "id": 13,
+    "label": "Trash can. 1.0.",
+    "yolo_hint": "vase",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -8.05,
+      "y": 3.21,
+      "distance": 2.92,
+      "angle": 6.08
+    },
+    "timestamp": "2025-11-26T21:14:00.711598"
+  },
+  {
+    "id": 14,
+    "label": "Black paddle.",
+    "yolo_hint": "traffic light",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -8.83,
+      "y": 0.46,
+      "distance": 1.39,
+      "angle": 0.51
+    },
+    "timestamp": "2025-11-26T21:14:17.816987"
+  },
+  {
+    "id": 15,
+    "label": "Ball.",
+    "yolo_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -6.06,
+      "y": 6.03,
+      "distance": 3.1,
+      "angle": 0.31
+    },
+    "timestamp": "2025-11-26T21:14:34.797445"
+  },
+  {
+    "id": 16,
+    "label": "Brick wall. 0.5",
+    "yolo_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -4.05,
+      "y": 6.1,
+      "distance": 2.79,
+      "angle": 6.27
+    },
+    "timestamp": "2025-11-26T21:14:39.730433"
+  },
+  {
+    "id": 17,
+    "label": "Football.",
+    "yolo_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -4.45,
+      "y": 2.42,
+      "distance": 2.5,
+      "angle": 6.18
+    },
+    "timestamp": "2025-11-26T21:15:00.646346"
+  },
+  {
+    "id": 18,
+    "label": "Name: Woodboard\nScore: 0.9",
+    "yolo_hint": "dining table",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -1.51,
+      "y": 2.2,
+      "distance": 2.02,
+      "angle": 0.33
+    },
+    "timestamp": "2025-11-26T21:42:38.547639"
+  },
+  {
+    "id": 19,
+    "label": "The main object in the image is a green rectangular object",
+    "yolo_hint": "bottle",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": -6.72,
+      "y": 0.84,
+      "distance": 3.44,
+      "angle": 0.04
+    },
+    "timestamp": "2025-11-26T21:43:23.290764"
+  }
+]

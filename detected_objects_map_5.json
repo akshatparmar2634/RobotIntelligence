@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1,
+    "label": "Name: Brick wall\nScore: 0.9",
+    "yolo_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -2.24,
+      "y": 3.32,
+      "distance": 2.95,
+      "angle": 0.29
+    },
+    "timestamp": "2025-11-26T21:46:29.759613"
+  },
+  {
+    "id": 2,
+    "label": "The main object in the image is a blue and gray background. Confidence Score: 0.9",
+    "yolo_hint": "cup",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -6.7,
+      "y": 0.75,
+      "distance": 2.11,
+      "angle": 5.85
+    },
+    "timestamp": "2025-11-26T21:46:38.815945"
+  },
+  {
+    "id": 3,
+    "label": "Name: Basketball\nScore: 0.9",
+    "yolo_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -5.16,
+      "y": 0.83,
+      "distance": 0.96,
+      "angle": 0.31
+    },
+    "timestamp": "2025-11-26T21:46:39.357557"
+  },
+  {
+    "id": 4,
+    "label": "Name: Trash bin\nScore: 0.9",
+    "yolo_hint": "vase",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -8.31,
+      "y": 4.81,
+      "distance": 3.11,
+      "angle": 6.09
+    },
+    "timestamp": "2025-11-26T21:47:59.462092"
+  },
+  {
+    "id": 5,
+    "label": "The main object in the image is a microphone. Confidence Score: 0.9",
+    "yolo_hint": "skateboard",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -10.03,
+      "y": 2.48,
+      "distance": 3.1,
+      "angle": 0.47
+    },
+    "timestamp": "2025-11-26T21:48:04.078631"
+  }
+]
