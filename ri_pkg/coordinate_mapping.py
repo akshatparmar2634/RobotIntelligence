@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan, CompressedImage
 from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 import torch
@@ -31,7 +32,7 @@ class YoloClipCameraNode(Node):
         # Get the package directory path for proper file location
         PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.objects_file_path = os.path.join(PACKAGE_DIR, "detected_objects_map.json")
-        self.coordinate_threshold = 0.5  # meters for duplicate detection
+        self.coordinate_threshold = 1  # meters for duplicate detection
         
         # Load existing objects if file exists
         self.load_objects_from_file()
@@ -44,10 +45,13 @@ class YoloClipCameraNode(Node):
             CompressedImage, 
             '/camera/image_raw/compressed', 
             self.compressed_image_callback, 
-            5
+            1
         )
-        self.odom_subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 5)
-        self.lidar_subscription = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 5)
+        self.odom_subscription = self.create_subscription(Odometry, '/odom', self.odom_callback, 1)
+        self.lidar_subscription = self.create_subscription(LaserScan, '/scan', self.lidar_callback, 1)
+        
+        # Publishers
+        self.detection_publisher = self.create_publisher(String, '/yolo/detection_result', 10)
 
     def odom_callback(self, msg):
         """Callback for robot odometry data"""
@@ -210,12 +214,52 @@ class YoloClipCameraNode(Node):
         
         return True
 
-    def get_object_distance_from_bbox(self, bbox_center_x, image_width,
-                                    window=2, agg='median'):
+    def publish_detection_results(self, detected_objects):
+        """Publish YOLO detection results to ROS topic"""
+        detection_msg = String()
+        
+        if detected_objects:
+            # Find the detection with highest confidence
+            best_detection = max(detected_objects, key=lambda obj: obj['confidence'])
+            
+            # Check if we have global coordinates and lidar data
+            if best_detection['global_coords'] and best_detection['lidar_data']:
+                gc = best_detection['global_coords']
+                ld = best_detection['lidar_data']
+                # Format: "label,confidence,x,y,distance,angle"
+                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},{gc['x']:.2f},{gc['y']:.2f},{ld['distance']:.2f},{ld['angle_rad']:.2f}"
+            else:
+                # Only label and confidence available
+                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},None,None,None,None"
+        else:
+            # No detections found
+            detection_msg.data = "None,0.0,None,None,None,None"
+        
+        # Publish the combined message
+        self.detection_publisher.publish(detection_msg)
+        
+        # Log the published data
+        if detected_objects:
+            parts = detection_msg.data.split(',')
+            if parts[2] != "None":
+                self.get_logger().info(f"Published detection: {parts[0]} (conf: {parts[1]}) at ({parts[2]}, {parts[3]}) dist: {parts[4]}m angle: {parts[5]}rad")
+            else:
+                self.get_logger().info(f"Published detection: {parts[0]} with confidence {parts[1]} (no position data)")
+        else:
+            self.get_logger().info("Published: No detections found")
+
+    def get_object_distance_from_bbox(self, bbox_left_x, bbox_right_x, image_width,
+                                    num_samples=5, outlier_filter=True):
         """
         Returns dict with distance + metadata or None if lidar not available / no valid returns.
-        - window: +/- samples around computed index to consider
-        - agg: 'median' or 'min' to aggregate window samples
+        Uses the entire bbox width to sample multiple angles and applies smart filtering.
+        
+        Args:
+            bbox_left_x: Left edge of bounding box
+            bbox_right_x: Right edge of bounding box  
+            image_width: Width of the image
+            num_samples: Number of sample points across bbox width
+            outlier_filter: Whether to apply outlier filtering to distance array
         """
         if self.lidar_data is None:
             return None
@@ -229,47 +273,109 @@ class YoloClipCameraNode(Node):
         # sanitize lidar invalid returns to NaN for easy filtering
         ranges[~np.isfinite(ranges)] = np.nan
 
-        # Compute normalized_x in [-1, 1] (left -> -1, center 0, right -> +1)
+        # Calculate sample points across the bbox width
+        bbox_width = bbox_right_x - bbox_left_x
+        if bbox_width <= 0:
+            # Fallback to center point if invalid bbox
+            sample_x_positions = [bbox_left_x]
+        else:
+            # Create evenly spaced sample points across bbox width
+            sample_x_positions = np.linspace(bbox_left_x, bbox_right_x, num_samples)
+
+        # Collect distance measurements for each sample point
+        distance_measurements = []
+        angle_measurements = []
+        lidar_indices = []
+        
         image_center_x = float(image_width) / 2.0
         if image_center_x == 0:
             raise ValueError("image_width must be > 0")
-        normalized_x = (float(bbox_center_x) - image_center_x) / image_center_x
-        # clamp to [-1, 1] to avoid out-of-bounds
-        normalized_x = max(-1.0, min(1.0, normalized_x))
 
-        # Map normalized_x -> angle in degrees (linear mapping)
-        # left (nx=-1) -> +30 deg, center (0) -> 0 deg, right (1) -> -30 deg
-        angle_deg = -30.0 * normalized_x
+        for sample_x in sample_x_positions:
+            # Compute normalized_x in [-1, 1] (left -> -1, center 0, right -> +1)
+            normalized_x = (float(sample_x) - image_center_x) / image_center_x
+            # clamp to [-1, 1] to avoid out-of-bounds
+            normalized_x = max(-1.0, min(1.0, normalized_x))
 
-        # Normalize to [0, 360)
-        angle_deg = angle_deg % 360.0
+            # Map normalized_x -> angle in degrees (linear mapping)
+            # left (nx=-1) -> +30 deg, center (0) -> 0 deg, right (1) -> -30 deg
+            angle_deg = -30.0 * normalized_x
 
-        # Convert to radians
-        angle_rad = math.radians(angle_deg)
+            # Normalize to [0, 360)
+            angle_deg = angle_deg % 360.0
 
-        # Compute floating index and round to nearest index (handle wrap with modulo)
-        idx_float = (angle_rad - angle_min) / angle_inc
-        idx = int(round(idx_float)) % n
+            # Convert to radians
+            angle_rad = math.radians(angle_deg)
+            angle_measurements.append(angle_deg)
 
-        # Build sample window (wrap-around)
-        idxs = [(idx + i) % n for i in range(-window, window + 1)]
-        samples = ranges[idxs]
-        valid = samples[np.isfinite(samples)]
+            # Compute floating index and round to nearest index (handle wrap with modulo)
+            idx_float = (angle_rad - angle_min) / angle_inc
+            idx = int(round(idx_float)) % n
+            lidar_indices.append(idx)
 
-        if valid.size == 0:
-            distance = None
+            # Get distance at this angle
+            if np.isfinite(ranges[idx]):
+                distance_measurements.append(float(ranges[idx]))
+            else:
+                distance_measurements.append(None)
+
+        # Filter out None values
+        valid_distances = [d for d in distance_measurements if d is not None]
+        
+        if len(valid_distances) == 0:
+            final_distance = None
+        elif outlier_filter and len(valid_distances) > 2:
+            # Apply outlier filtering logic
+            # Sort distances to identify potential outliers
+            sorted_distances = sorted(valid_distances)
+            
+            # Remove the largest value if it's significantly different (outlier detection)
+            if len(sorted_distances) >= 3:
+                # Calculate median and check if max value is an outlier
+                median_val = np.median(sorted_distances[:-1])  # median without the max
+                max_val = sorted_distances[-1]
+                
+                # If max value is more than 30% larger than median, consider it an outlier
+                if max_val > median_val * 1.3:
+                    filtered_distances = sorted_distances[:-1]
+                else:
+                    filtered_distances = sorted_distances
+            else:
+                filtered_distances = sorted_distances
+            
+            # Take average of remaining valid distances
+            final_distance = float(np.mean(filtered_distances))
         else:
-            distance = float(np.median(valid)) if agg == 'median' else float(np.min(valid))
+            # No outlier filtering or too few samples - just take average
+            final_distance = float(np.mean(valid_distances))
+
+        # Calculate center angle for backwards compatibility
+        bbox_center_x = (bbox_left_x + bbox_right_x) / 2.0
+        normalized_center_x = (bbox_center_x - image_center_x) / image_center_x
+        normalized_center_x = max(-1.0, min(1.0, normalized_center_x))
+        center_angle_deg = -30.0 * normalized_center_x
+        center_angle_deg = center_angle_deg % 360.0
+        center_angle_rad = math.radians(center_angle_deg)
+        
+        # Find the lidar index corresponding to center angle
+        center_idx_float = (center_angle_rad - angle_min) / angle_inc
+        center_idx = int(round(center_idx_float)) % n
 
         return {
-            'distance': distance,
-            'angle_deg': angle_deg,
-            'angle_rad': angle_rad,
-            'lidar_index': idx,
+            'distance': final_distance,
+            'angle_deg': center_angle_deg,  # Center angle for backwards compatibility
+            'angle_rad': center_angle_rad,
+            'lidar_index': center_idx,
             'bbox_center_x': bbox_center_x,
-            'normalized_x': normalized_x,
-            'window_idxs': idxs,
-            'window_samples': samples.tolist()
+            'bbox_left_x': bbox_left_x,
+            'bbox_right_x': bbox_right_x,
+            'normalized_x': normalized_center_x,
+            'distance_array': distance_measurements,
+            'valid_distances': valid_distances,
+            'angle_array': angle_measurements,
+            'lidar_indices': lidar_indices,
+            'num_samples': len(sample_x_positions),
+            'outlier_filtered': outlier_filter and len(valid_distances) > 2
         }
 
     def compressed_image_callback(self, msg):
@@ -300,7 +406,9 @@ class YoloClipCameraNode(Node):
                     cls = int(box.cls[0])
                     label = self.yolo_model.names[cls]
                     
-                    bbox_center_x = (b[0] + b[2]) / 2
+                    bbox_left_x = float(b[0])
+                    bbox_right_x = float(b[2])
+                    bbox_center_x = (bbox_left_x + bbox_right_x) / 2
                     bbox_center_y = (b[1] + b[3]) / 2
 
                     # Draw bounding box
@@ -310,8 +418,8 @@ class YoloClipCameraNode(Node):
                     center_x, center_y = int(bbox_center_x), int(bbox_center_y)
                     cv2.circle(annotated, (center_x, center_y), 5, (0, 255, 255), -1)
                     
-                    # Calculate LiDAR distance for this object
-                    lidar_data = self.get_object_distance_from_bbox(bbox_center_x, image_width)
+                    # Calculate LiDAR distance for this object using the full bbox width
+                    lidar_data = self.get_object_distance_from_bbox(bbox_left_x, bbox_right_x, image_width)
                     
                     if lidar_data and lidar_data['distance'] is not None:
                         # Calculate global coordinates
@@ -381,6 +489,9 @@ class YoloClipCameraNode(Node):
                           f"  No Data | No Data  |        No Data      |  No Data | {obj['confidence']:9.2f}")
             
             print("=" * 100)
+
+        # Publish detection results
+        self.publish_detection_results(detected_objects)
 
         cv2.imshow("Object Detection with LiDAR Data", annotated)
         cv2.waitKey(1)
