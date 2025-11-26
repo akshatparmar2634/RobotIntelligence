@@ -222,18 +222,22 @@ class YoloClipCameraNode(Node):
             # Find the detection with highest confidence
             best_detection = max(detected_objects, key=lambda obj: obj['confidence'])
             
+            # Get bbox coordinates
+            bbox = best_detection['bbox']
+            bbox_str = f"{bbox[0]},{bbox[1]},{bbox[2]},{bbox[3]}"
+            
             # Check if we have global coordinates and lidar data
             if best_detection['global_coords'] and best_detection['lidar_data']:
                 gc = best_detection['global_coords']
                 ld = best_detection['lidar_data']
-                # Format: "label,confidence,x,y,distance,angle"
-                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},{gc['x']:.2f},{gc['y']:.2f},{ld['distance']:.2f},{ld['angle_rad']:.2f}"
+                # Format: "label,confidence,x,y,distance,angle,bbox_left,bbox_top,bbox_right,bbox_bottom"
+                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},{gc['x']:.2f},{gc['y']:.2f},{ld['distance']:.2f},{ld['angle_rad']:.2f},{bbox_str}"
             else:
-                # Only label and confidence available
-                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},None,None,None,None"
+                # Only label, confidence and bbox available
+                detection_msg.data = f"{best_detection['label']},{best_detection['confidence']:.4f},None,None,None,None,{bbox_str}"
         else:
             # No detections found
-            detection_msg.data = "None,0.0,None,None,None,None"
+            detection_msg.data = "None,0.0,None,None,None,None,None,None,None,None"
         
         # Publish the combined message
         self.detection_publisher.publish(detection_msg)
@@ -242,9 +246,9 @@ class YoloClipCameraNode(Node):
         if detected_objects:
             parts = detection_msg.data.split(',')
             if parts[2] != "None":
-                self.get_logger().info(f"Published detection: {parts[0]} (conf: {parts[1]}) at ({parts[2]}, {parts[3]}) dist: {parts[4]}m angle: {parts[5]}rad")
+                self.get_logger().info(f"Published detection: {parts[0]} (conf: {parts[1]}) at ({parts[2]}, {parts[3]}) dist: {parts[4]}m angle: {parts[5]}rad bbox: ({parts[6]},{parts[7]},{parts[8]},{parts[9]})")
             else:
-                self.get_logger().info(f"Published detection: {parts[0]} with confidence {parts[1]} (no position data)")
+                self.get_logger().info(f"Published detection: {parts[0]} with confidence {parts[1]} bbox: ({parts[6]},{parts[7]},{parts[8]},{parts[9]}) (no position data)")
         else:
             self.get_logger().info("Published: No detections found")
 
