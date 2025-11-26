@@ -1,0 +1,157 @@
+[
+  {
+    "id": 1,
+    "yolo_label": "bench",
+    "vlm_label": "Identify the single primary object in the image and provide a confidence score (0.0 to 1.0). Strictly output only the object name and the confidence score, separated by a single pipe",
+    "vlm_confidence": 0.5,
+    "fused_label": "bench (Identify the single primary object in the image and provide a confidence score (0.0 to 1.0). Strictly output only the object name and the confidence score, separated by a single pipe)",
+    "label": "bench (Identify the single primary object in the image and provide a confidence score (0.0 to 1.0). Strictly output only the object name and the confidence score, separated by a single pipe)",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": -1.68,
+      "y": 4.21,
+      "distance": 1.7,
+      "angle": 0.055
+    },
+    "robot_pose_at_detection": {
+      "x": -3.2659814924011124,
+      "y": 3.605308789300591,
+      "z": 0.0,
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.15453564575130985,
+        "w": 0.9879872135772941
+      }
+    },
+    "timestamp": "2025-11-26T19:29:47.935712"
+  },
+  {
+    "id": 2,
+    "yolo_label": "bench",
+    "vlm_label": null,
+    "vlm_confidence": null,
+    "fused_label": "bench",
+    "label": "bench",
+    "confidence": 0.6742270588874817,
+    "world_coordinates": {
+      "x": -1.68,
+      "y": 4.21,
+      "distance": 1.7,
+      "angle": 0.055
+    },
+    "robot_pose_at_detection": {
+      "x": -3.2659814924011124,
+      "y": 3.605308789300591,
+      "z": 0.0,
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.15453564575130985,
+        "w": 0.9879872135772941
+      }
+    },
+    "timestamp": "2025-11-26T19:29:47.950570"
+  },
+  {
+    "id": 3,
+    "label": "sports ball",
+    "confidence": 0.45750027894973755,
+    "world_coordinates": {
+      "x": -6.86,
+      "y": 2.88,
+      "distance": 1.84,
+      "angle": 0.17
+    },
+    "robot_pose_at_detection": {
+      "x": -5.0182211984269,
+      "y": 2.836437702176542,
+      "z": 0.0,
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.9952229009516035,
+        "w": 0.09762877353257508
+      }
+    },
+    "timestamp": "2025-11-26T20:10:24.505154"
+  },
+  {
+    "id": 4,
+    "label": "Box.",
+    "yolo_label_hint": "cup",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -6.0,
+      "y": 1.96,
+      "distance": 2.06,
+      "angle": 0.5
+    },
+    "timestamp": "2025-11-26T20:57:12.958715"
+  },
+  {
+    "id": 5,
+    "label": "Trash can. 1.0.",
+    "yolo_label_hint": "vase",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -8.01,
+      "y": 6.79,
+      "distance": 3.48,
+      "angle": -0.24
+    },
+    "timestamp": "2025-11-26T20:57:34.238661"
+  },
+  {
+    "id": 6,
+    "label": "Green button.",
+    "yolo_label_hint": "sports ball",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -6.49,
+      "y": 8.63,
+      "distance": 3.44,
+      "angle": 0.35
+    },
+    "timestamp": "2025-11-26T20:58:18.764881"
+  },
+  {
+    "id": 7,
+    "label": "Brick wall. 0.7",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -4.34,
+      "y": 8.8,
+      "distance": 2.82,
+      "angle": -0.12
+    },
+    "timestamp": "2025-11-26T20:58:28.249418"
+  },
+  {
+    "id": 8,
+    "label": "Brick wall.",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -5.01,
+      "y": 9.57,
+      "distance": 1.85,
+      "angle": -0.26
+    },
+    "timestamp": "2025-11-26T20:58:40.173123"
+  },
+  {
+    "id": 9,
+    "label": "Brick wall. 0.7",
+    "yolo_label_hint": "bench",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": -2.6,
+      "y": 7.61,
+      "distance": 2.57,
+      "angle": 0.33
+    },
+    "timestamp": "2025-11-26T20:58:55.003161"
+  }
+]
