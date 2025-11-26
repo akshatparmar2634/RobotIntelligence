@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Autonomous Navigation Node for Fast Semantic Mapping
+Autonomous Navigation Node for Waypoint Navigation
 
 This node provides autonomous navigation capabilities for the TurtleBot3 to systematically
-explore the house environment with quick object detection at each waypoint.
+navigate through predefined waypoints in the environment.
 
 Features:
 - Waypoint-based navigation using Nav2
-- Fast 360-degree scanning at each waypoint
-- Quick object detection without long pauses
+- Quick waypoint-to-waypoint movement
 - Integration with semantic mapping
 - Dynamic waypoint generation
 - Recovery behaviors
@@ -411,25 +410,9 @@ class AutonomousNavigationNode(Node):
                 f"🎯 Reached waypoint: {self.current_waypoint['description']} {progress}"
             )
             
-            # Ensure robot is stopped before scanning
-            self.get_logger().info("🛑 Ensuring robot is completely stopped before scanning...")
-            stop_msg = Twist()
-            stop_msg.linear.x = 0.0
-            stop_msg.angular.z = 0.0
-            for _ in range(10):
-                self.cmd_vel_pub.publish(stop_msg)
-                time.sleep(0.1)
-            
-            # Wait a moment for robot to stabilize
-            time.sleep(1.0)
-            self.get_logger().info("✅ Robot stabilized, starting object detection scan...")
-            
-            # Perform 360-degree scan for object detection
-            self.pause_for_mapping()
-            
-            # Update waypoint status to completed after scanning
+            # Update waypoint status to completed
             waypoint_data['status'] = 'completed'
-            waypoint_data['scan_completed_at'] = datetime.now().isoformat()
+            waypoint_data['completed_at'] = datetime.now().isoformat()
             self.visited_waypoints.append(waypoint_data)
             
             # Move to next waypoint
@@ -478,129 +461,6 @@ class AutonomousNavigationNode(Node):
             self.state = NavigationState.IDLE
             self.get_logger().info(f"🔄 Continuing to next waypoint despite failure...")
 
-    def pause_for_mapping(self):
-        """360-degree scan at current location for object detection"""
-        self.get_logger().info(f"🔍 Starting 360-degree object detection scan...")
-        
-        # Cancel any active navigation to ensure we have control
-        if self.current_nav_goal:
-            self.get_logger().info("🛑 Canceling navigation goal to take manual control for rotation...")
-            try:
-                self.current_nav_goal.cancel_goal_async()
-                time.sleep(1.0)  # Wait for cancellation to complete
-            except Exception as e:
-                self.get_logger().warn(f"Failed to cancel navigation goal: {e}")
-        
-        # Perform slow 360-degree rotation for better object detection
-        self.get_logger().info(f"🔄 Taking manual control for 360-degree rotation...")
-        success = self.perform_observation_rotation()
-        
-        if success:
-            # Brief pause for object detection to process all views
-            self.get_logger().info(f"⏳ Allowing time for object detection processing...")
-            time.sleep(2.0)  # Give object detection system time to process all views
-            self.get_logger().info(f"✅ 360-degree scan completed, moving to next waypoint")
-        else:
-            self.get_logger().warn(f"⚠️ 360-degree rotation may have failed, continuing anyway")
-
-    def perform_observation_rotation(self):
-        """Perform a slow 360-degree rotation for comprehensive object detection"""
-        self.get_logger().info(f"🌟 Starting manual 360-degree rotation...")
-        
-        try:
-            # Create twist message
-            twist_msg = Twist()
-            angular_velocity = 0.5  # Medium speed rotation (0.5 rad/s)
-            
-            # Calculate rotation time for full 360 degrees (2π radians)
-            full_rotation_time = (2 * math.pi) / angular_velocity  # About 12.5 seconds
-            self.get_logger().info(f"🕒 Rotation will take approximately {full_rotation_time:.1f} seconds")
-            
-            # Control parameters
-            control_rate = 20  # Hz - higher frequency for smoother control
-            dt = 1.0 / control_rate
-            total_steps = int(full_rotation_time / dt)
-            
-            # Ensure we have a clean stop first
-            self.get_logger().info("🛑 Ensuring complete stop before rotation...")
-            stop_msg = Twist()
-            stop_msg.linear.x = 0.0
-            stop_msg.linear.y = 0.0
-            stop_msg.linear.z = 0.0
-            stop_msg.angular.x = 0.0
-            stop_msg.angular.y = 0.0
-            stop_msg.angular.z = 0.0
-            
-            # Send multiple stop commands
-            for i in range(20):
-                self.cmd_vel_pub.publish(stop_msg)
-                time.sleep(0.05)
-            
-            self.get_logger().info("✅ Robot stopped, starting rotation now...")
-            time.sleep(0.5)  # Brief pause
-            
-            # Prepare rotation message
-            twist_msg.linear.x = 0.0
-            twist_msg.linear.y = 0.0
-            twist_msg.linear.z = 0.0
-            twist_msg.angular.x = 0.0
-            twist_msg.angular.y = 0.0
-            twist_msg.angular.z = angular_velocity
-            
-            self.get_logger().info(f"🔄 Starting rotation at {angular_velocity:.2f} rad/s")
-            self.get_logger().info(f"📊 Publishing to /cmd_vel topic at {control_rate} Hz")
-            
-            # Perform controlled rotation with detailed logging
-            for step in range(total_steps):
-                # Publish velocity command
-                self.cmd_vel_pub.publish(twist_msg)
-                
-                # Log progress every 1 second
-                if step % control_rate == 0:
-                    progress = (step / total_steps) * 100
-                    degrees_rotated = (step * dt * angular_velocity) * 180 / math.pi
-                    self.get_logger().info(f"🔄 Rotation: {progress:.1f}% complete ({degrees_rotated:.1f}° rotated)")
-                    
-                    # Debug: Confirm we're still publishing
-                    self.get_logger().debug(f"📤 Publishing cmd_vel: angular.z = {angular_velocity}")
-                
-                # Sleep for control rate
-                time.sleep(dt)
-            
-            # Stop rotation with multiple commands
-            self.get_logger().info("🛑 Stopping rotation...")
-            stop_msg.angular.z = 0.0
-            
-            # Send stop commands with higher frequency
-            for i in range(30):
-                self.cmd_vel_pub.publish(stop_msg)
-                if i % 10 == 0:
-                    self.get_logger().info(f"🛑 Stop command {i//10 + 1}/3 sent")
-                time.sleep(0.05)
-            
-            self.get_logger().info(f"✅ 360-degree rotation completed successfully!")
-            self.get_logger().info(f"🛑 Robot should now be stopped")
-            
-            return True
-            
-        except Exception as e:
-            self.get_logger().error(f"❌ Error during 360-degree rotation: {e}")
-            
-            # Emergency stop
-            try:
-                self.get_logger().error("🚨 Executing emergency stop!")
-                emergency_stop = Twist()
-                emergency_stop.linear.x = 0.0
-                emergency_stop.angular.z = 0.0
-                for _ in range(50):
-                    self.cmd_vel_pub.publish(emergency_stop)
-                    time.sleep(0.02)
-                self.get_logger().info(f"🛑 Emergency stop completed")
-            except Exception as stop_error:
-                self.get_logger().error(f"Failed to execute emergency stop: {stop_error}")
-            
-            return False
-
     def on_exploration_complete(self):
         """Handle completion of all waypoints"""
         self.state = NavigationState.COMPLETED
@@ -619,7 +479,7 @@ class AutonomousNavigationNode(Node):
         # Generate comprehensive exploration report
         self.generate_exploration_report()
         
-        self.get_logger().info("🔍 Object detection data saved to detected_objects_vlm.json")
+        self.get_logger().info("🔍 Object detection data may be saved to detected_objects_vlm.json")
         self.get_logger().info("📊 Navigation report saved to exploration_report.json")
 
     def generate_exploration_report(self):
@@ -749,44 +609,6 @@ class AutonomousNavigationNode(Node):
         status_msg.data = self.exploration_active
         self.exploration_status_pub.publish(status_msg)
 
-    def test_rotation_only(self):
-        """Test function to verify rotation works independently of navigation"""
-        self.get_logger().info("🧪 TESTING ROTATION ONLY - No navigation involved")
-        
-        # Wait for pose to be available
-        if not self.current_pose:
-            self.get_logger().warn("⏳ Waiting for robot pose...")
-            time.sleep(2.0)
-        
-        # Just do a simple rotation test
-        self.get_logger().info("🔄 Starting simple rotation test...")
-        
-        try:
-            twist = Twist()
-            twist.angular.z = 0.5  # 0.5 rad/s
-            
-            self.get_logger().info("📤 Publishing rotation commands for 6 seconds...")
-            
-            # Rotate for 6 seconds (should be about 180 degrees)
-            for i in range(60):  # 6 seconds at 10Hz
-                self.cmd_vel_pub.publish(twist)
-                if i % 10 == 0:
-                    self.get_logger().info(f"🔄 Rotation test: {i/10:.0f} seconds elapsed")
-                time.sleep(0.1)
-            
-            # Stop
-            twist.angular.z = 0.0
-            for _ in range(10):
-                self.cmd_vel_pub.publish(twist)
-                time.sleep(0.1)
-            
-            self.get_logger().info("✅ Rotation test completed!")
-            return True
-            
-        except Exception as e:
-            self.get_logger().error(f"❌ Rotation test failed: {e}")
-            return False
-
     # Service interfaces for external control
     def get_exploration_status(self):
         """Get current exploration status"""
@@ -812,25 +634,8 @@ def main(args=None):
         # navigation_node.test_rotation_only()
         # return
         
-        # Check if cmd_vel topic is working
-        navigation_node.get_logger().info("🔍 Checking if /cmd_vel topic is working...")
-        
-        # Test if we can publish to cmd_vel
-        try:
-            test_twist = Twist()
-            test_twist.linear.x = 0.0
-            test_twist.angular.z = 0.0
-            navigation_node.cmd_vel_pub.publish(test_twist)
-            navigation_node.get_logger().info("✅ Successfully published to /cmd_vel topic")
-        except Exception as e:
-            navigation_node.get_logger().error(f"❌ Failed to publish to /cmd_vel: {e}")
-        
         # Start exploration automatically (or wait for external command)
         navigation_node.get_logger().info("Starting autonomous exploration in 5 seconds...")
-        navigation_node.get_logger().info("💡 If robot doesn't rotate at waypoints, check:")
-        navigation_node.get_logger().info("   1. Navigation2 is not overriding /cmd_vel")
-        navigation_node.get_logger().info("   2. Robot simulation is running properly")
-        navigation_node.get_logger().info("   3. /cmd_vel topic is being received by robot")
         time.sleep(5.0)
         
         if navigation_node.start_exploration():
