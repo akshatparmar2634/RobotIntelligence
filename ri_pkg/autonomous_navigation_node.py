@@ -23,8 +23,8 @@ from nav2_msgs.action import NavigateToPose
 from nav2_msgs.srv import GetCostmap, ClearEntireCostmap
 from geometry_msgs.msg import PoseStamped, Twist, Point, Quaternion
 from nav_msgs.msg import Odometry, OccupancyGrid
-from sensor_msgs.msg import LaserScan
-from std_msgs.msg import Bool
+from sensor_msgs.msg import LaserScan, Image
+from std_msgs.msg import Bool, String
 from lifecycle_msgs.srv import ChangeState, GetState
 from lifecycle_msgs.msg import Transition
 
@@ -32,9 +32,13 @@ import math
 import time
 import json
 import os
+import threading
 from datetime import datetime
 from enum import Enum
 from typing import List, Tuple, Optional
+
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
 
 # Navigation states
 class NavigationState(Enum):
@@ -49,6 +53,8 @@ class NavigationState(Enum):
 PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WAYPOINTS_FILE = os.path.join(PACKAGE_DIR, "navigation_waypoints.json")
 COVERAGE_FILE = os.path.join(PACKAGE_DIR, "coverage_data.json")
+HUMAN_CLARIFICATION_FILE = os.path.join(PACKAGE_DIR, "human_clarification.json")
+LOW_CONFIDENCE_THRESHOLD = 0.5
 
 class AutonomousNavigationNode(Node):
     def __init__(self):
@@ -78,6 +84,18 @@ class AutonomousNavigationNode(Node):
         self.waypoint_spacing = 2.0  # meters for coverage
         self.max_retry_attempts = 3
         self.pause_duration = 0.5  # seconds - minimal pause for fast scanning
+        self.awaiting_clarification = False
+        self.paused_waypoint = None
+        self.bridge = CvBridge()
+        self.latest_image = None
+        self.latest_image_stamp = None
+        self.frame_lock = threading.Lock()
+        self.clarification_lock = threading.Lock()
+        self.low_confidence_threshold = LOW_CONFIDENCE_THRESHOLD
+        self.camera_topic = self.declare_parameter('camera_topic', '/camera/color/image_raw').value
+        self.clarification_prompt_active = False
+        self.clarified_signatures = set()
+        self.clarified_labels = set()
         
         # Nav2 Action Client
         self.nav_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
@@ -99,6 +117,10 @@ class AutonomousNavigationNode(Node):
             LaserScan, '/scan', self.scan_callback, 10)
         self.costmap_sub = self.create_subscription(
             OccupancyGrid, '/global_costmap/costmap', self.costmap_callback, qos_profile)
+        self.camera_sub = self.create_subscription(
+            Image, self.camera_topic, self.camera_callback, 10)
+        self.detection_sub = self.create_subscription(
+            String, '/yolo/detection_result', self.detection_callback, 10)
         
         # Publishers
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -114,6 +136,7 @@ class AutonomousNavigationNode(Node):
         
         # Load saved waypoints and coverage data
         self.load_navigation_data()
+        self.load_human_clarifications()
         
         # Initialize predefined waypoints for house exploration
         self.initialize_house_waypoints()
@@ -144,6 +167,12 @@ class AutonomousNavigationNode(Node):
             
             # Return to start
             {"x": 0.0, "y": 0.0, "theta": 0.0, "description": "Return to start"}
+            # User-specified main goal points for IRAS Hub
+            # {"x": 4.5, "y": 0.17, "theta": 0.0, "description": "Goal point 1: (4.5, 0.17)"},
+            # {"x": 4.0, "y": 3.15, "theta": 1.57, "description": "Goal point 2: (4, 3.15)"},
+            # {"x": 0.67, "y": 3.4, "theta": 3.14, "description": "Goal point 3: (0.67, 3.4)"},
+            # {"x": 1.8, "y": 0.485, "theta": -1.57, "description": "Goal point 4: (1.8, 0.485)"},
+            
         ]
         
         self.predefined_waypoints = house_waypoints
@@ -192,6 +221,37 @@ class AutonomousNavigationNode(Node):
                 json.dump(data, f, indent=2)
         except Exception as e:
             self.get_logger().error(f"Could not save navigation data: {e}")
+
+    def load_human_clarifications(self):
+        """Load previously clarified detections to suppress repeat prompts."""
+        self.clarified_signatures = set()
+        self.clarified_labels = set()
+        if not os.path.exists(HUMAN_CLARIFICATION_FILE):
+            return
+
+        try:
+            with open(HUMAN_CLARIFICATION_FILE, 'r') as file_obj:
+                data = json.load(file_obj)
+
+            if isinstance(data, list):
+                entries = data
+            elif isinstance(data, dict):
+                entries = data.get('entries', []) or []
+            else:
+                entries = []
+
+            for record in entries:
+                signature = self._signature_from_record(record)
+                if signature is not None:
+                    self.clarified_signatures.add(signature)
+                detected_label = record.get('detected_label') or record.get('label')
+                if detected_label:
+                    self.clarified_labels.add(detected_label)
+                actual_label = record.get('label')
+                if actual_label:
+                    self.clarified_labels.add(actual_label)
+        except Exception as exc:
+            self.get_logger().warn(f"Could not load human clarifications: {exc}")
 
     def diagnostic_check(self):
         """Perform diagnostic checks for navigation readiness"""
@@ -260,6 +320,316 @@ class AutonomousNavigationNode(Node):
     def costmap_callback(self, msg):
         """Callback for global costmap"""
         self.costmap_data = msg
+
+    def camera_callback(self, msg):
+        """Store the latest camera frame for clarification prompts."""
+        try:
+            frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            with self.frame_lock:
+                self.latest_image = frame.copy()
+                self.latest_image_stamp = msg.header.stamp
+        except CvBridgeError as exc:
+            self.get_logger().error(f"❌ Failed to convert camera image: {exc}")
+
+    def detection_callback(self, msg):
+        """React to YOLO detection results and trigger human clarification when needed."""
+        detection = self.parse_detection_message(msg.data)
+        if not detection or detection['label'] is None:
+            return
+
+        detected_label = detection['label']
+        if detected_label in self.clarified_labels:
+            return
+
+        signature = self.get_detection_signature(detection)
+        if signature and signature in self.clarified_signatures:
+            return
+
+        confidence = detection.get('confidence')
+        if confidence is None:
+            return
+
+        if confidence < self.low_confidence_threshold:
+            if self.awaiting_clarification:
+                return
+
+            self.awaiting_clarification = True
+            self.get_logger().warn(
+                f"⚠️ Low confidence detection ({confidence:.2f}) for label '{detection['label']}'. Awaiting human input."
+            )
+            try:
+                threading.Thread(
+                    target=self.handle_low_confidence_detection,
+                    args=(detection,),
+                    daemon=True
+                ).start()
+            except Exception as exc:
+                self.awaiting_clarification = False
+                self.get_logger().error(f"Failed to start clarification thread: {exc}")
+
+    def parse_detection_message(self, data: str):
+        """Convert detection string into structured data."""
+        try:
+            parts = [part.strip() for part in data.split(',')]
+            if len(parts) != 10:
+                self.get_logger().debug(f"Unexpected detection payload length: {len(parts)}")
+                return None
+
+            label = parts[0] if parts[0] not in ('None', '') else None
+
+            def parse_float(value):
+                return float(value) if value not in ('None', '') else None
+
+            confidence = parse_float(parts[1])
+            world_x = parse_float(parts[2])
+            world_y = parse_float(parts[3])
+            world_distance = parse_float(parts[4])
+            world_angle = parse_float(parts[5])
+            bbox = {
+                'x_min': parse_float(parts[6]),
+                'y_min': parse_float(parts[7]),
+                'x_max': parse_float(parts[8]),
+                'y_max': parse_float(parts[9])
+            }
+
+            return {
+                'label': label,
+                'confidence': confidence,
+                'world_coordinates': {
+                    'x': world_x,
+                    'y': world_y,
+                    'distance': world_distance,
+                    'angle': world_angle
+                },
+                'bbox': bbox,
+                'raw': data
+            }
+        except Exception as exc:
+            self.get_logger().warn(f"Failed to parse detection data: {exc}")
+            return None
+
+    def get_detection_signature(self, detection):
+        """Create a signature for a detection payload to identify repeats."""
+        if not detection or not isinstance(detection, dict):
+            return None
+
+        signature = self._build_signature_tuple(
+            detection.get('label'),
+            detection.get('world_coordinates'),
+            detection.get('bbox')
+        )
+
+        if any(item is not None for item in signature):
+            return signature
+
+        raw = detection.get('raw')
+        return raw.strip() if raw else None
+
+    def _signature_from_record(self, record):
+        """Build signature from a stored clarification record."""
+        if not isinstance(record, dict):
+            return None
+
+        detected_label = record.get('detected_label') or record.get('label')
+        signature = self._build_signature_tuple(
+            detected_label,
+            record.get('world_coordinates'),
+            record.get('bbox')
+        )
+
+        if any(item is not None for item in signature):
+            return signature
+
+        raw = record.get('raw')
+        return raw.strip() if raw else None
+
+    def _build_signature_tuple(self, label, world_coords, bbox):
+        world_coords = world_coords or {}
+        bbox = bbox or {}
+        return (
+            label,
+            self._round_or_none(world_coords.get('x')),
+            self._round_or_none(world_coords.get('y')),
+            self._round_or_none(world_coords.get('distance')),
+            self._round_or_none(world_coords.get('angle')),
+            self._int_or_none(bbox.get('x_min')),
+            self._int_or_none(bbox.get('y_min')),
+            self._int_or_none(bbox.get('x_max')),
+            self._int_or_none(bbox.get('y_max'))
+        )
+
+    @staticmethod
+    def _round_or_none(value, digits=2):
+        return round(value, digits) if isinstance(value, (int, float)) else None
+
+    @staticmethod
+    def _int_or_none(value):
+        if value is None:
+            return None
+        try:
+            return int(round(float(value)))
+        except (TypeError, ValueError):
+            return None
+
+    def handle_low_confidence_detection(self, detection):
+        """Pause navigation and gather human clarification for a detection."""
+        try:
+            self.pause_navigation_for_clarification()
+
+            frame = self.get_latest_frame_copy()
+            annotated_frame = None
+            if frame is not None:
+                annotated_frame = self.draw_bounding_box(frame, detection)
+                window_title = "Low Confidence Detection"
+                cv2.imshow(window_title, annotated_frame)
+                cv2.waitKey(1)
+            else:
+                self.get_logger().warn("No camera frame available for human clarification.")
+
+            self.clarification_prompt_active = True
+            actual_label = self.prompt_for_label(detection.get('label'))
+            self.save_human_clarification(detection, actual_label)
+
+            if annotated_frame is not None:
+                try:
+                    cv2.destroyWindow("Low Confidence Detection")
+                except cv2.error:
+                    pass
+
+            self.get_logger().info("✅ Human clarification recorded. Resuming navigation.")
+        finally:
+            self.clarification_prompt_active = False
+            self.resume_navigation_after_clarification()
+            self.awaiting_clarification = False
+
+    def pause_navigation_for_clarification(self):
+        """Stop the robot and cancel the current goal to await human input."""
+        self.get_logger().info("⏸️ Pausing navigation for human clarification...")
+        self.paused_waypoint = self.current_waypoint
+        self.state = NavigationState.PAUSED
+        self.stop_robot_motion()
+
+        if self.current_nav_goal:
+            try:
+                cancel_future = self.current_nav_goal.cancel_goal_async()
+                if cancel_future:
+                    rclpy.spin_until_future_complete(self, cancel_future, timeout_sec=2.0)
+            except Exception as exc:
+                self.get_logger().debug(f"Cancel goal exception (ignored): {exc}")
+            self.current_nav_goal = None
+
+    def resume_navigation_after_clarification(self):
+        """Resume navigation flow after human feedback."""
+        if self.state != NavigationState.PAUSED:
+            return
+
+        if self.exploration_active:
+            self.state = NavigationState.IDLE
+        else:
+            self.state = NavigationState.IDLE
+
+        if self.paused_waypoint:
+            self.get_logger().info("🧭 Re-attempting waypoint after clarification.")
+        self.paused_waypoint = None
+
+    def stop_robot_motion(self):
+        """Publish zero velocity to halt the robot."""
+        twist = Twist()
+        self.cmd_vel_pub.publish(twist)
+
+    def get_latest_frame_copy(self):
+        """Return a copy of the most recent camera frame if available."""
+        with self.frame_lock:
+            if self.latest_image is None:
+                return None
+            return self.latest_image.copy()
+
+    def draw_bounding_box(self, frame, detection):
+        """Annotate frame with bounding box and label when provided."""
+        annotated = frame.copy()
+        bbox = detection.get('bbox', {})
+        if all(bbox.get(key) is not None for key in ['x_min', 'y_min', 'x_max', 'y_max']):
+            x_min = int(bbox['x_min'])
+            y_min = int(bbox['y_min'])
+            x_max = int(bbox['x_max'])
+            y_max = int(bbox['y_max'])
+            cv2.rectangle(annotated, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+            label = detection.get('label') or 'Unknown'
+            confidence = detection.get('confidence')
+            caption = f"{label} ({confidence:.2f})" if confidence is not None else label
+            cv2.putText(
+                annotated,
+                caption,
+                (x_min, max(y_min - 10, 0)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 255, 0),
+                2
+            )
+        else:
+            cv2.putText(
+                annotated,
+                "No bounding box provided",
+                (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 0, 255),
+                2
+            )
+        return annotated
+
+    def prompt_for_label(self, detected_label: Optional[str]):
+        """Prompt the operator for the true label of the detected object."""
+        try:
+            message = f"\nEnter the actual object label (detected: {detected_label or 'Unknown'}):"
+            print(message, flush=True)
+            response = input("> ")
+            if not response.strip():
+                return detected_label
+            return response.strip()
+        except EOFError:
+            self.get_logger().warn("Input unavailable. Falling back to detected label.")
+            return detected_label
+
+    def save_human_clarification(self, detection, actual_label: Optional[str]):
+        """Persist human clarification details to JSON file."""
+        with self.clarification_lock:
+            entries = []
+            if os.path.exists(HUMAN_CLARIFICATION_FILE):
+                try:
+                    with open(HUMAN_CLARIFICATION_FILE, 'r') as file_obj:
+                        existing = json.load(file_obj)
+                        if isinstance(existing, list):
+                            entries = existing
+                        elif isinstance(existing, dict) and 'entries' in existing:
+                            entries = existing['entries']
+                except json.JSONDecodeError:
+                    self.get_logger().warn("Human clarification JSON corrupted. Overwriting with fresh list.")
+
+            entry_id = (entries[-1]["id"] + 1) if entries else 1
+            record = {
+                "id": entry_id,
+                "label": actual_label,
+                "confidence": detection.get('confidence'),
+                "world_coordinates": detection.get('world_coordinates'),
+                "bbox": detection.get('bbox'),
+                "detected_label": detection.get('label'),
+                "raw": detection.get('raw'),
+                "recorded_at": datetime.now().isoformat()
+            }
+            entries.append(record)
+
+            with open(HUMAN_CLARIFICATION_FILE, 'w') as file_obj:
+                json.dump(entries, file_obj, indent=2)
+
+            if detection.get('label'):
+                self.clarified_labels.add(detection['label'])
+            if actual_label:
+                self.clarified_labels.add(actual_label)
+
+            signature = self.get_detection_signature(detection)
+            if signature is not None:
+                self.clarified_signatures.add(signature)
 
     def create_pose_stamped(self, x, y, theta):
         """Create a PoseStamped message from x, y, theta"""
@@ -373,12 +743,14 @@ class AutonomousNavigationNode(Node):
 
     def get_result_callback(self, future):
         """Callback for navigation result"""
-        result = future.result().result
         status = future.result().status
         
         if status == 4:  # SUCCEEDED
             self.get_logger().info(f"🎉 Successfully reached waypoint: {self.current_waypoint['description']}")
             self.on_waypoint_reached()
+        elif status == 5 and self.state == NavigationState.PAUSED:
+            if not self.awaiting_clarification:
+                self.get_logger().info("✅ Navigation goal canceled for human clarification.")
         else:
             self.get_logger().warn(f"⚠️ Navigation failed with status {status} for waypoint: {self.current_waypoint['description']}")
             self.on_navigation_failed()
@@ -573,6 +945,9 @@ class AutonomousNavigationNode(Node):
         if not self.exploration_active:
             return
         
+        if self.state == NavigationState.PAUSED:
+            return
+
         if self.state == NavigationState.IDLE:
             # Start navigation to next waypoint
             if self.current_goal_index < len(self.predefined_waypoints):
