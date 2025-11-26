@@ -1,0 +1,5 @@
+# YOLO Models
+*.pt
+*.pth
+*.onnx
+*.engine
