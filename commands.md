@@ -304,3 +304,14 @@ ros2 run ri_pkg yolo_improved_vlm_node
 ```bash
 ros2 launch turtlebot3_bringup camera.launch.py   width:=640 height:=480 framerate:=30 pixel_format:=YUYV   image_transport:=theora   theora_quality:=15   theora_target_bitrate:=8000
 ```
+## quick commands:
+
+```bash
+ros2 launch turtlebot3_gazebo turtlebot3_house.launch.py use_sim_time:=True
+ros2 launch turtlebot3_navigation2 navigation2.launch.py use_sim_time:=True map:=$HOME/map_house.yaml
+
+source ~/yolo_clip_env/bin/activate
+python3 ~/turtlebot3_ws/src/ri_pkg/ri_pkg/coordinate_mapping.py
+
+python3 ~/turtlebot3_ws/src/ri_pkg/ri_pkg/autonomous_navigation_node.py
+```

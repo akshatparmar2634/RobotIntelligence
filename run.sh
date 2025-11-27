@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MODE=${1:-all}
+shift $(( $# > 0 ? 1 : 0 )) 2>/dev/null || true
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+ROS_SETUP="/opt/ros/jazzy/setup.bash"
+WS_SETUP="${WORKSPACE_DIR}/install/setup.bash"
+YOLO_ENV_PATH="${YOLO_ENV:-$HOME/yolo_clip_env}"
+
+if [[ -f "${ROS_SETUP}" ]]; then
+  # shellcheck disable=SC1090
+  source "${ROS_SETUP}"
+else
+  echo "[run.sh] ROS 2 setup file not found at ${ROS_SETUP}" >&2
+  exit 1
+fi
+
+if [[ -f "${WS_SETUP}" ]]; then
+  # shellcheck disable=SC1090
+  source "${WS_SETUP}"
+else
+  echo "[run.sh] Workspace setup file not found at ${WS_SETUP}. Run 'colcon build' first." >&2
+  exit 1
+fi
+
+export TURTLEBOT3_MODEL="${TURTLEBOT3_MODEL:-waffle_pi}"
+
+run_navigation() {
+  ros2 launch ri_pkg autonomous_navigation.launch.py "${@}"
+}
+
+run_vlm() {
+  if [[ -d "${YOLO_ENV_PATH}" ]]; then
+    # shellcheck disable=SC1090
+    source "${YOLO_ENV_PATH}/bin/activate"
+  else
+    echo "[run.sh] YOLO environment not found at ${YOLO_ENV_PATH}." >&2
+    echo "           Set YOLO_ENV to the correct virtualenv path or create the environment." >&2
+    exit 1
+  fi
+  ros2 run ri_pkg yolo_improved_vlm_node "${@}"
+}
+
+case "${MODE}" in
+  navigation)
+    run_navigation "$@"
+    ;;
+  vlm)
+    run_vlm "$@"
+    ;;
+  all)
+    echo "[run.sh] Starting autonomous navigation and VLM pipeline..."
+    run_navigation "$@" &
+    NAV_PID=$!
+
+    sleep 5
+
+    run_vlm "$@" &
+    VLM_PID=$!
+
+    trap 'echo "[run.sh] Stopping..."; kill ${NAV_PID} ${VLM_PID} 2>/dev/null || true' INT TERM
+    wait ${NAV_PID} ${VLM_PID}
+    ;;
+  *)
+    cat <<'USAGE'
+Usage: run.sh [all|navigation|vlm] [-- ros2 args]
+  all          Start navigation launch and VLM detection (default)
+  navigation   Only launch the autonomous navigation stack
+  vlm          Only run the YOLO+VLM semantic mapping node
+
+Environment variables:
+  YOLO_ENV           Path to virtual environment for VLM node (default: $HOME/yolo_clip_env)
+  TURTLEBOT3_MODEL   TurtleBot3 model to use (default: waffle_pi)
+USAGE
+    ;;
+ esac
