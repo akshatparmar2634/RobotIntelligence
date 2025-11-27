@@ -1,50 +1,652 @@
 [
   {
     "id": 1,
-    "label": "dining table",
-    "confidence": 0.5104318261146545,
+    "label": "Name: Television\nScore: 0.9",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
     "world_coordinates": {
-      "x": 3.2225765852007644,
-      "y": 0.8700709728051474,
-      "distance": 3.3332269191741943,
-      "angle": 0.26408865265284975
+      "x": 11.87,
+      "y": 13.68,
+      "distance": 6.49,
+      "angle": 0.06
     },
-    "robot_pose_at_detection": {
-      "x": 0.004910008784023793,
-      "y": 1.7756356232203282e-14,
-      "z": 0.0,
-      "orientation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.3612424720930614,
-        "w": 0.9324719171943431
-      }
-    },
-    "timestamp": "2025-11-20T15:15:22.465900",
-    "vlm_description": "The object is a table."
+    "timestamp": "2025-11-26T23:46:15.439693"
   },
   {
     "id": 2,
-    "label": "umbrella",
-    "confidence": 0.3708174228668213,
+    "label": "Name: Office chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
     "world_coordinates": {
-      "x": -2.9163581575444,
-      "y": 3.4990304811108794,
-      "distance": 1.4933295249938965,
-      "angle": 3.399391587509425
+      "x": 12.15,
+      "y": 14.71,
+      "distance": 6.97,
+      "angle": 0.2
     },
-    "robot_pose_at_detection": {
-      "x": -1.4723779645727568,
-      "y": 3.879759088552023,
-      "z": 0.0,
-      "orientation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.9928509127559941,
-        "w": 0.11936107003369749
-      }
+    "timestamp": "2025-11-26T23:46:17.022496"
+  },
+  {
+    "id": 3,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 12.44,
+      "y": 16.61,
+      "distance": 7.95,
+      "angle": 0.43
     },
-    "timestamp": "2025-11-20T15:18:54.352238",
-    "vlm_description": "The object is a small, cylindrical object with a smooth surface. It appears to be made of a material that is resistant to wear and tear, possibly plastic or a similar material. The object has a small hole at the top, which could be for"
+    "timestamp": "2025-11-26T23:46:18.808865"
+  },
+  {
+    "id": 4,
+    "label": "The main object in the image is a blurred background with horizontal lines",
+    "yolo_hint": "person",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 8.92,
+      "y": 15.11,
+      "distance": 4.16,
+      "angle": 0.51
+    },
+    "timestamp": "2025-11-26T23:47:32.070155"
+  },
+  {
+    "id": 5,
+    "label": "The main object in the image is a laptop. Confidence Score: 0.9",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 10.72,
+      "y": 16.24,
+      "distance": 6.28,
+      "angle": 0.5
+    },
+    "timestamp": "2025-11-26T23:47:35.123707"
+  },
+  {
+    "id": 6,
+    "label": "The main object in the image is a television screen. Confidence Score: 0.9",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 12.6,
+      "y": 15.62,
+      "distance": 7.5,
+      "angle": 0.43
+    },
+    "timestamp": "2025-11-26T23:57:46.979128"
+  },
+  {
+    "id": 7,
+    "label": "Name: Television\nScore: 0.9",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 8.42,
+      "y": 12.23,
+      "distance": 2.84,
+      "angle": 6.13
+    },
+    "timestamp": "2025-11-26T23:57:49.794577"
+  },
+  {
+    "id": 8,
+    "label": "Name: Office chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 11.05,
+      "y": 12.53,
+      "distance": 5.42,
+      "angle": 6.28
+    },
+    "timestamp": "2025-11-26T23:57:51.367273"
+  },
+  {
+    "id": 9,
+    "label": "The main object in this image is a person wearing beige pants and sandals. Confidence Score: 0.95\n\nName: Person in beige pants and sandals",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 4.92,
+      "y": 17.97,
+      "distance": 4.73,
+      "angle": 0.37
+    },
+    "timestamp": "2025-11-26T23:57:53.195022"
+  },
+  {
+    "id": 10,
+    "label": "The main object in the image is a person wearing a blue shirt. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.41,
+      "y": 23.88,
+      "distance": 10.5,
+      "angle": 0.17
+    },
+    "timestamp": "2025-11-26T23:57:54.790796"
+  },
+  {
+    "id": 11,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 6.24,
+      "y": 16.89,
+      "distance": 3.49,
+      "angle": 0.08
+    },
+    "timestamp": "2025-11-26T23:57:57.792984"
+  },
+  {
+    "id": 12,
+    "label": "The main object in the image is a person wearing a green shirt. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 4.88,
+      "y": 21.86,
+      "distance": 8.56,
+      "angle": 0.25
+    },
+    "timestamp": "2025-11-26T23:57:59.144663"
+  },
+  {
+    "id": 13,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 8.17,
+      "y": 18.14,
+      "distance": 5.14,
+      "angle": 5.98
+    },
+    "timestamp": "2025-11-26T23:58:02.217200"
+  },
+  {
+    "id": 14,
+    "label": "The main object in the image is a person's face",
+    "yolo_hint": "chair",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 10.95,
+      "y": 20.42,
+      "distance": 8.5,
+      "angle": 5.78
+    },
+    "timestamp": "2025-11-26T23:58:05.155504"
+  },
+  {
+    "id": 15,
+    "label": "The main object in the image is a smartphone. Confidence Score: 0.95",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 10.74,
+      "y": 21.59,
+      "distance": 9.38,
+      "angle": 5.87
+    },
+    "timestamp": "2025-11-26T23:58:06.136974"
+  },
+  {
+    "id": 16,
+    "label": "The main object in the image is a person wearing a blue shirt. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.66,
+      "y": 20.97,
+      "distance": 7.59,
+      "angle": 0.17
+    },
+    "timestamp": "2025-11-26T23:58:07.756835"
+  },
+  {
+    "id": 17,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 11.74,
+      "y": 21.51,
+      "distance": 9.84,
+      "angle": 5.78
+    },
+    "timestamp": "2025-11-26T23:58:09.054829"
+  },
+  {
+    "id": 18,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 9.27,
+      "y": 20.64,
+      "distance": 7.88,
+      "angle": 5.98
+    },
+    "timestamp": "2025-11-26T23:58:12.095134"
+  },
+  {
+    "id": 19,
+    "label": "The main object in the image is a pair of headphones. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 6.48,
+      "y": 23.13,
+      "distance": 9.73,
+      "angle": 0.07
+    },
+    "timestamp": "2025-11-26T23:58:13.955688"
+  },
+  {
+    "id": 20,
+    "label": "Name: Person standing  \nScore: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.38,
+      "y": 16.23,
+      "distance": 2.93,
+      "angle": 0.37
+    },
+    "timestamp": "2025-11-26T23:58:14.901464"
+  },
+  {
+    "id": 21,
+    "label": "Name: Person\nScore: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.26,
+      "y": 19.78,
+      "distance": 6.44,
+      "angle": 0.24
+    },
+    "timestamp": "2025-11-26T23:58:15.788623"
+  },
+  {
+    "id": 22,
+    "label": "The main object in the image is a person wearing a black shirt and beige pants. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.83,
+      "y": 18.94,
+      "distance": 5.55,
+      "angle": 0.16
+    },
+    "timestamp": "2025-11-26T23:58:17.524835"
+  },
+  {
+    "id": 23,
+    "label": "The main object in the image is a person's face",
+    "yolo_hint": "chair",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 12.41,
+      "y": 22.35,
+      "distance": 10.91,
+      "angle": 5.77
+    },
+    "timestamp": "2025-11-26T23:58:20.343029"
+  },
+  {
+    "id": 24,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 6.48,
+      "y": 21.83,
+      "distance": 8.09,
+      "angle": 6.26
+    },
+    "timestamp": "2025-11-26T23:58:30.054010"
+  },
+  {
+    "id": 25,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 10.83,
+      "y": 23.4,
+      "distance": 10.71,
+      "angle": 5.84
+    },
+    "timestamp": "2025-11-26T23:58:33.144359"
+  },
+  {
+    "id": 26,
+    "label": "The main object in the image is a water bottle. Confidence Score: 0.9",
+    "yolo_hint": "dining table",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 8.03,
+      "y": 22.12,
+      "distance": 8.58,
+      "angle": 6.07
+    },
+    "timestamp": "2025-11-26T23:58:34.438819"
+  },
+  {
+    "id": 27,
+    "label": "The main object in the image is a person holding a tray with food. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.56,
+      "y": 22.73,
+      "distance": 9.01,
+      "angle": 0.08
+    },
+    "timestamp": "2025-11-26T23:58:36.159049"
+  },
+  {
+    "id": 28,
+    "label": "The main object in the image is a water bottle. Confidence Score: 0.9",
+    "yolo_hint": "dining table",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 7.75,
+      "y": 20.9,
+      "distance": 7.33,
+      "angle": 6.08
+    },
+    "timestamp": "2025-11-26T23:58:38.732587"
+  },
+  {
+    "id": 29,
+    "label": "The main object in the image is a water bottle. Confidence Score: 0.9",
+    "yolo_hint": "dining table",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 7.45,
+      "y": 19.5,
+      "distance": 5.89,
+      "angle": 6.08
+    },
+    "timestamp": "2025-11-26T23:58:40.845188"
+  },
+  {
+    "id": 30,
+    "label": "Name: Chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 6.4,
+      "y": 19.9,
+      "distance": 6.16,
+      "angle": 6.26
+    },
+    "timestamp": "2025-11-26T23:58:44.498851"
+  },
+  {
+    "id": 31,
+    "label": "The main object in the image is a person sitting in a chair. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 5.45,
+      "y": 15.18,
+      "distance": 1.62,
+      "angle": 0.48
+    },
+    "timestamp": "2025-11-26T23:58:47.993455"
+  },
+  {
+    "id": 32,
+    "label": "The main object in the image is a laptop. Confidence Score: 0.95",
+    "yolo_hint": "laptop",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 12.7,
+      "y": 18.04,
+      "distance": 7.81,
+      "angle": 0.51
+    },
+    "timestamp": "2025-11-26T23:59:17.951613"
+  },
+  {
+    "id": 33,
+    "label": "Name: Television\nScore: 0.9",
+    "yolo_hint": "tv",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 13.93,
+      "y": 18.77,
+      "distance": 6.76,
+      "angle": 0.07
+    },
+    "timestamp": "2025-11-27T00:07:16.923343"
+  },
+  {
+    "id": 34,
+    "label": "Name: Office chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 14.22,
+      "y": 19.87,
+      "distance": 7.33,
+      "angle": 0.21
+    },
+    "timestamp": "2025-11-27T00:07:18.438015"
+  },
+  {
+    "id": 35,
+    "label": "Name: Chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 13.89,
+      "y": 21.59,
+      "distance": 7.77,
+      "angle": 0.44
+    },
+    "timestamp": "2025-11-27T00:07:19.903360"
+  },
+  {
+    "id": 36,
+    "label": "The main object in the image is a blurred background with horizontal lines",
+    "yolo_hint": "bottle",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 13.94,
+      "y": 22.81,
+      "distance": 8.05,
+      "angle": 0.52
+    },
+    "timestamp": "2025-11-27T00:07:35.695079"
+  },
+  {
+    "id": 37,
+    "label": "The main object in the image is a desk with a computer monitor and a keyboard. Confidence Score: 0.9",
+    "yolo_hint": "airplane",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 11.53,
+      "y": 17.23,
+      "distance": 3.36,
+      "angle": 5.93
+    },
+    "timestamp": "2025-11-27T00:07:39.019323"
+  },
+  {
+    "id": 38,
+    "label": "The main object in the image is a blue and white object",
+    "yolo_hint": "bottle",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 13.75,
+      "y": 24.13,
+      "distance": 7.3,
+      "angle": 0.48
+    },
+    "timestamp": "2025-11-27T00:07:48.001525"
+  },
+  {
+    "id": 39,
+    "label": "The main object in the image is a pair of glasses. Confidence Score: 0.9",
+    "yolo_hint": "bottle",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 13.08,
+      "y": 23.33,
+      "distance": 6.07,
+      "angle": 0.42
+    },
+    "timestamp": "2025-11-27T00:07:50.692787"
+  },
+  {
+    "id": 40,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 12.53,
+      "y": 28.0,
+      "distance": 9.88,
+      "angle": 0.47
+    },
+    "timestamp": "2025-11-27T00:07:52.475560"
+  },
+  {
+    "id": 41,
+    "label": "Name: Chair\nScore: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 13.3,
+      "y": 25.74,
+      "distance": 7.76,
+      "angle": 0.22
+    },
+    "timestamp": "2025-11-27T00:07:55.243350"
+  },
+  {
+    "id": 42,
+    "label": "The main object in the image is a car. Confidence Score: 0.9",
+    "yolo_hint": "motorcycle",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 11.37,
+      "y": 27.7,
+      "distance": 9.15,
+      "angle": 0.5
+    },
+    "timestamp": "2025-11-27T00:07:56.410033"
+  },
+  {
+    "id": 43,
+    "label": "The main object in the image is a large",
+    "yolo_hint": "bicycle",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 10.17,
+      "y": 27.64,
+      "distance": 8.57,
+      "angle": 0.38
+    },
+    "timestamp": "2025-11-27T00:07:59.121887"
+  },
+  {
+    "id": 44,
+    "label": "The main object in the image is a building with a curved roof. Confidence Score: 0.9",
+    "yolo_hint": "car",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 8.53,
+      "y": 25.17,
+      "distance": 6.12,
+      "angle": 0.14
+    },
+    "timestamp": "2025-11-27T00:08:00.763128"
+  },
+  {
+    "id": 45,
+    "label": "The main object in the image is a person wearing a dark jacket and light-colored pants. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 8.25,
+      "y": 23.33,
+      "distance": 4.37,
+      "angle": 6.28
+    },
+    "timestamp": "2025-11-27T00:08:02.538477"
+  },
+  {
+    "id": 46,
+    "label": "The main object in the image is a person wearing a blue shirt. Confidence Score: 0.9",
+    "yolo_hint": "person",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 7.41,
+      "y": 25.38,
+      "distance": 6.57,
+      "angle": 6.24
+    },
+    "timestamp": "2025-11-27T00:08:04.131483"
+  },
+  {
+    "id": 47,
+    "label": "The main object in this image is a computer monitor. Confidence Score: 0.95\n\nThe image shows a computer monitor placed on a desk",
+    "yolo_hint": "airplane",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 8.29,
+      "y": 26.5,
+      "distance": 7.28,
+      "angle": 6.06
+    },
+    "timestamp": "2025-11-27T00:08:07.195021"
+  },
+  {
+    "id": 48,
+    "label": "The main object in the image is a person standing near a door. The person is wearing a dark-colored shirt and light-colored pants. The confidence score for this identification is 0.9.",
+    "yolo_hint": "train",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 7.55,
+      "y": 17.11,
+      "distance": 3.51,
+      "angle": 0.01
+    },
+    "timestamp": "2025-11-27T00:08:09.255814"
+  },
+  {
+    "id": 49,
+    "label": "The main object in the image is a yellow object",
+    "yolo_hint": "tv",
+    "confidence": 0.5,
+    "world_coordinates": {
+      "x": 13.54,
+      "y": 17.39,
+      "distance": 4.24,
+      "angle": 0.45
+    },
+    "timestamp": "2025-11-27T00:08:14.011188"
+  },
+  {
+    "id": 50,
+    "label": "The main object in the image is a chair. Confidence Score: 0.9",
+    "yolo_hint": "chair",
+    "confidence": 0.8,
+    "world_coordinates": {
+      "x": 12.82,
+      "y": 24.73,
+      "distance": 5.5,
+      "angle": 0.25
+    },
+    "timestamp": "2025-11-27T00:08:21.714166"
   }
 ]
