@@ -3,3 +3,7 @@
 *.pth
 *.onnx
 *.engine
+.env
+__pycache__/
+DetectionsMP3/
+stt_cli.py

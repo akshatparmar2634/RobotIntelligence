@@ -28,6 +28,16 @@ from std_msgs.msg import Bool, String
 from lifecycle_msgs.srv import ChangeState, GetState
 from lifecycle_msgs.msg import Transition
 
+try:
+    from tts_node import speak  # type: ignore[import]
+except Exception:  # pragma: no cover - optional dependency or missing credentials
+    speak = None  # type: ignore[assignment]
+
+try:
+    from ri_pkg.ri_pkg.stt_node import capture_and_transcribe  # type: ignore[import]
+except ImportError:  # pragma: no cover - optional dependency
+    capture_and_transcribe = None
+
 import math
 import time
 import json
@@ -39,7 +49,6 @@ from typing import List, Tuple, Optional
 
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
-
 # Navigation states
 class NavigationState(Enum):
     IDLE = "idle"
@@ -54,7 +63,7 @@ PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WAYPOINTS_FILE = os.path.join(PACKAGE_DIR, "navigation_waypoints.json")
 COVERAGE_FILE = os.path.join(PACKAGE_DIR, "coverage_data.json")
 HUMAN_CLARIFICATION_FILE = os.path.join(PACKAGE_DIR, "human_clarification.json")
-LOW_CONFIDENCE_THRESHOLD = 0.5
+LOW_CONFIDENCE_THRESHOLD = 0.6
 
 class AutonomousNavigationNode(Node):
     def __init__(self):
@@ -96,6 +105,31 @@ class AutonomousNavigationNode(Node):
         self.clarification_prompt_active = False
         self.clarified_signatures = set()
         self.clarified_labels = set()
+
+        # Speech-to-text configuration (leverages ElevenLabs helper functions)
+        stt_enabled_default = True if capture_and_transcribe is not None else False
+        self.stt_enabled = bool(self.declare_parameter('stt_enabled', stt_enabled_default).value)
+        if capture_and_transcribe is None and self.stt_enabled:
+            self.get_logger().warn(
+                "Speech-to-text requested but ElevenLabs STT integration is unavailable."
+            )
+            self.stt_enabled = False
+
+        self.stt_duration = float(self.declare_parameter('stt_duration', 5.0).value)
+        self.stt_sample_rate = int(self.declare_parameter('stt_sample_rate', 16000).value)
+
+        language_param = self.declare_parameter('stt_language_code', '').value
+        self.stt_language_code = language_param.strip() or None if isinstance(language_param, str) else None
+
+        model_param = self.declare_parameter('stt_model_id', '').value
+        self.stt_model_id = model_param.strip() or None if isinstance(model_param, str) else None
+
+        api_key_param = self.declare_parameter('stt_api_key', '').value
+        self.stt_api_key = api_key_param.strip() or None if isinstance(api_key_param, str) else None
+
+        self.stt_tag_audio_events = self.declare_parameter('stt_tag_audio_events', False).value
+        self.stt_diarize = self.declare_parameter('stt_diarize', False).value
+        self.stt_keep_temp_recording = bool(self.declare_parameter('stt_keep_temp_recording', False).value)
         
         # Nav2 Action Client
         self.nav_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
@@ -583,7 +617,55 @@ class AutonomousNavigationNode(Node):
         try:
             message = f"\nEnter the actual object label (detected: {detected_label or 'Unknown'}):"
             print(message, flush=True)
-            response = input("> ")
+            audio_message = f"Please enter the actual object label. The detected label is {detected_label}."
+            if speak is not None:
+                try:
+                    speak(audio_message)
+                except RuntimeError as exc:
+                    self.get_logger().warn(f"TTS playback unavailable: {exc}")
+                except Exception as exc:
+                    self.get_logger().warn(f"TTS playback failed: {exc}")
+            else:
+                self.get_logger().warn(
+                    "Text-to-speech playback unavailable. Ensure ElevenLabs credentials and audio dependencies are configured."
+                )
+            if self.stt_enabled and capture_and_transcribe is not None:
+                try:
+                    print("🎙️ Listening for spoken response... (speak clearly within 5 seconds)", flush=True)
+                    stt_kwargs = {
+                        'duration': max(self.stt_duration, 0.5),  # enforce a minimum duration
+                        'sample_rate': max(self.stt_sample_rate, 8000),
+                        'cleanup': not self.stt_keep_temp_recording,
+                    }
+
+                    if self.stt_language_code:
+                        stt_kwargs['language_code'] = self.stt_language_code
+                    if self.stt_model_id:
+                        stt_kwargs['model_id'] = self.stt_model_id
+                    if self.stt_api_key:
+                        stt_kwargs['api_key'] = self.stt_api_key
+                    if self.stt_tag_audio_events is not None:
+                        stt_kwargs['tag_audio_events'] = bool(self.stt_tag_audio_events)
+                    if self.stt_diarize is not None:
+                        stt_kwargs['diarize'] = bool(self.stt_diarize)
+
+                    spoken_label = capture_and_transcribe(**stt_kwargs)
+                    if spoken_label:
+                        print(f"📝 Transcription: {spoken_label}", flush=True)
+                        confirmation = input(
+                            "Press Enter to accept transcription, or type the correct label: "
+                        ).strip()
+                        if confirmation:
+                            return confirmation
+                        speak("Thanks for the clarification")
+                        return spoken_label
+                except RuntimeError as exc:
+                    self.get_logger().warn(f"Voice-to-text unavailable: {exc}")
+                except Exception as exc:
+                    self.get_logger().warn(f"Voice-to-text failed: {exc}")
+
+            response = input("Speech was not understood. Please type the correct label: ")
+            speak("Thanks for the clarification")
             if not response.strip():
                 return detected_label
             return response.strip()
