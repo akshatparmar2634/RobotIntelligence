@@ -2,6 +2,10 @@
 
 This package delivers a full TurtleBot3 exploration stack that combines Nav2-based autonomous navigation, a YOLO + Vision-Language (VLM) perception pipeline, and a human-in-the-loop clarification workflow. The robot navigates through configurable waypoints, detects objects, and pauses when confidence is low so that an operator can confirm or relabel the detection.
 
+<p align="center">
+  <img src="assets/flowchart.png" width="750">
+</p>
+
 ## Table of Contents
 
 - [Features](#features)
