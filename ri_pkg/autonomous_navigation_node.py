@@ -34,7 +34,7 @@ except Exception:  # pragma: no cover - optional dependency or missing credentia
     speak = None  # type: ignore[assignment]
 
 try:
-    from ri_pkg.ri_pkg.stt_node import capture_and_transcribe  # type: ignore[import]
+    from stt_node import capture_and_transcribe  # type: ignore[import]
 except ImportError:  # pragma: no cover - optional dependency
     capture_and_transcribe = None
 
@@ -615,7 +615,7 @@ class AutonomousNavigationNode(Node):
     def prompt_for_label(self, detected_label: Optional[str]):
         """Prompt the operator for the true label of the detected object."""
         try:
-            message = f"\nEnter the actual object label (detected: {detected_label or 'Unknown'}):"
+            message = f"\nObject detected with low confidence: {detected_label or 'Unknown'}"
             print(message, flush=True)
             audio_message = f"Please enter the actual object label. The detected label is {detected_label}."
             if speak is not None:
@@ -665,7 +665,7 @@ class AutonomousNavigationNode(Node):
                     self.get_logger().warn(f"Voice-to-text failed: {exc}")
 
             response = input("Speech was not understood. Please type the correct label: ")
-            speak("Thanks for the clarification")
+            speak("Thanks for clarifying")
             if not response.strip():
                 return detected_label
             return response.strip()

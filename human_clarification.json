@@ -38,5 +38,65 @@
     "detected_label": "suitcase",
     "raw": "suitcase,0.3972,-0.98,4.03,1.26,6.24,221,0,469,58",
     "recorded_at": "2025-11-29T21:11:05.065769"
+  },
+  {
+    "id": 3,
+    "label": "Bottle.",
+    "confidence": 0.3454,
+    "world_coordinates": {
+      "x": null,
+      "y": null,
+      "distance": null,
+      "angle": null
+    },
+    "bbox": {
+      "x_min": 152.0,
+      "y_min": 228.0,
+      "x_max": 164.0,
+      "y_max": 252.0
+    },
+    "detected_label": "bottle",
+    "raw": "bottle,0.3454,None,None,None,None,152,228,164,252",
+    "recorded_at": "2025-11-29T21:44:40.099503"
+  },
+  {
+    "id": 4,
+    "label": "Wall.",
+    "confidence": 0.3711,
+    "world_coordinates": {
+      "x": -1.28,
+      "y": 2.54,
+      "distance": 0.88,
+      "angle": 0.28
+    },
+    "bbox": {
+      "x_min": 0.0,
+      "y_min": 1.0,
+      "x_max": 296.0,
+      "y_max": 459.0
+    },
+    "detected_label": "bed",
+    "raw": "bed,0.3711,-1.28,2.54,0.88,0.28,0,1,296,459",
+    "recorded_at": "2025-11-29T21:44:58.750137"
+  },
+  {
+    "id": 5,
+    "label": "Trash can.",
+    "confidence": 0.3801,
+    "world_coordinates": {
+      "x": -2.3,
+      "y": 2.73,
+      "distance": 1.63,
+      "angle": 0.38
+    },
+    "bbox": {
+      "x_min": 64.0,
+      "y_min": 194.0,
+      "x_max": 109.0,
+      "y_max": 251.0
+    },
+    "detected_label": "cup",
+    "raw": "cup,0.3801,-2.30,2.73,1.63,0.38,64,194,109,251",
+    "recorded_at": "2025-11-29T21:46:17.253062"
   }
 ]

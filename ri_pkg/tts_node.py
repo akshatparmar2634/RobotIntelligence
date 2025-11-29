@@ -22,8 +22,7 @@ def suppress_alsa_errors():
             os.dup2(old_stderr, stderr_fileno)
 
 try:  # Optional playback dependency
-    from pydub import AudioSegment  # type: ignore[import]
-    from pydub import playback
+    from pydub import AudioSegment, playback  # type: ignore[import]
     from pydub.playback import play as pydub_play  # type: ignore[import]
     playback._play_with_ffplay = True
     
