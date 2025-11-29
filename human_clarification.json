@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "label": "Wall.",
+    "confidence": 0.461,
+    "world_coordinates": {
+      "x": -1.04,
+      "y": 2.86,
+      "distance": 2.73,
+      "angle": 0.42
+    },
+    "bbox": {
+      "x_min": 1.0,
+      "y_min": 23.0,
+      "x_max": 122.0,
+      "y_max": 260.0
+    },
+    "detected_label": "dining table",
+    "raw": "dining table,0.4610,-1.04,2.86,2.73,0.42,1,23,122,260",
+    "recorded_at": "2025-11-29T21:10:29.549701"
+  },
+  {
+    "id": 2,
+    "label": "Wall",
+    "confidence": 0.3972,
+    "world_coordinates": {
+      "x": -0.98,
+      "y": 4.03,
+      "distance": 1.26,
+      "angle": 6.24
+    },
+    "bbox": {
+      "x_min": 221.0,
+      "y_min": 0.0,
+      "x_max": 469.0,
+      "y_max": 58.0
+    },
+    "detected_label": "suitcase",
+    "raw": "suitcase,0.3972,-0.98,4.03,1.26,6.24,221,0,469,58",
+    "recorded_at": "2025-11-29T21:11:05.065769"
+  }
+]
