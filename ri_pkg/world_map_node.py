@@ -7,7 +7,7 @@ import os
 
 # --- CONFIGURATION ---
 # Replace this with your actual file name
-FILENAME = "../detected_objects_map_iras.json" 
+FILENAME = "../assets/detected_objects_map_iras.json"
 
 def extract_clean_label(raw_label):
     """Parses VLM output to get a short name."""
@@ -114,8 +114,8 @@ def visualize_graph(G):
     plt.legend()
     
     # Save or Show
-    plt.savefig("object_graph_map_IRAS.png")
-    print("Graph saved to object_graph_map_IRAS.png")
+    plt.savefig("assets/object_graph_map_IRAS.png")
+    print("Graph saved to assets/object_graph_map_IRAS.png")
     plt.show()
 
 if __name__ == "__main__":

@@ -133,7 +133,7 @@ class InternVL3Node(Node):
         
         # File Config
         PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.objects_file_path = os.path.join(PACKAGE_DIR, "detected_objects_map.json")
+        self.objects_file_path = os.path.join(PACKAGE_DIR, "assets", "detected_objects_map.json")
         self.coordinate_threshold = 1.0 
         
         self.load_objects_from_file()

@@ -60,9 +60,9 @@ class NavigationState(Enum):
 
 # Get package directory for saving navigation data
 PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WAYPOINTS_FILE = os.path.join(PACKAGE_DIR, "navigation_waypoints.json")
-COVERAGE_FILE = os.path.join(PACKAGE_DIR, "coverage_data.json")
-HUMAN_CLARIFICATION_FILE = os.path.join(PACKAGE_DIR, "human_clarification.json")
+WAYPOINTS_FILE = os.path.join(PACKAGE_DIR, "assets", "navigation_waypoints.json")
+COVERAGE_FILE = os.path.join(PACKAGE_DIR, "assets", "coverage_data.json")
+HUMAN_CLARIFICATION_FILE = os.path.join(PACKAGE_DIR, "assets", "human_clarification.json")
 LOW_CONFIDENCE_THRESHOLD = 0.6
 
 class AutonomousNavigationNode(Node):
@@ -946,8 +946,8 @@ class AutonomousNavigationNode(Node):
                 'failed_waypoints': len([w for w in self.visited_waypoints if w.get('status') == 'failed']),
                 'visited_waypoints': self.visited_waypoints
             }
-            
-            report_file = os.path.join(PACKAGE_DIR, "exploration_report.json")
+
+            report_file = os.path.join(PACKAGE_DIR, "assets", "exploration_report.json")
             with open(report_file, 'w') as f:
                 json.dump(report, f, indent=2)
             
