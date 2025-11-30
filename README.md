@@ -16,7 +16,7 @@ This package delivers a full TurtleBot3 exploration stack that combines Nav2-bas
 
 Watch the autonomous navigation and semantic mapping system in action in Gazebo simulation:
 
-https://github.com/akshatparmar2634/RobotIntelligence/assets/demo%20videos/final_gazebo_demo.mp4
+https://github.com/akshatparmar2634/RobotIntelligence/blob/master/assets/demo%20videos/final_gazebo_demo.mp4
 
 [📥 Download Simulation Demo Video](assets/demo%20videos/final_gazebo_demo.mp4)
 
@@ -24,7 +24,7 @@ https://github.com/akshatparmar2634/RobotIntelligence/assets/demo%20videos/final
 
 Watch the system running on the actual TurtleBot3 Waffle Pi robot:
 
-https://github.com/akshatparmar2634/RobotIntelligence/assets/demo%20videos/final%20ri%20demo.mp4
+https://github.com/akshatparmar2634/RobotIntelligence/blob/masterassets/demo%20videos/final%20ri%20demo.mp4
 
 [📥 Download Hardware Demo Video](assets/demo%20videos/final%20ri%20demo.mp4)
 
