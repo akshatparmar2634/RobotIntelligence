@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 MODE=${1:-all}
 shift $(( $# > 0 ? 1 : 0 )) 2>/dev/null || true
